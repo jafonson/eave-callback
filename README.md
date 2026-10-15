@@ -1,7 +1,7 @@
 # Eave bank callback page
 
 The static page Enable Banking sends a person back to after they approve at their bank. It bounces `code` and `state` into
-the app (`eave://bank/callback`). If the app doesn't take over (another browser), after 2 s it completes the link itself
+the app (`eave://bank/callback`). If the app doesn't take over (another browser), after about 3 s it completes the link itself
 through the `bank-link-complete` Edge Function and shows the result. It hides `code` and `state` from the address bar at
 once, loads nothing from third parties, and never shows a balance, an account number or a name.
 

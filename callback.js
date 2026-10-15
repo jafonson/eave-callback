@@ -64,14 +64,14 @@ export async function completeLink(search, fetchImpl) {
         ? { result: 'connected', bankName: answer.bankName }
         : { result: 'connected' };
     }
-    if (answer.result === 'refused' || answer.result === 'used') return { result: answer.result };
+    if (['refused', 'empty', 'used'].includes(answer.result)) return { result: answer.result };
   } catch {
     // Network, timeout or a body that isn't JSON: the page can't tell what happened.
   }
   return { result: 'unreachable' };
 }
 
-/** 'connected' | 'refused' | 'used' | 'failed' (the server created nothing) | 'unreachable' (outcome unknown) */
+/** 'connected' | 'refused' | 'empty' | 'used' | 'failed' (the server created nothing) | 'unreachable' (outcome unknown) */
 export async function finishHere(search, fetchImpl) {
   return (await completeLink(search, fetchImpl)).result;
 }
@@ -80,22 +80,22 @@ const COPY = {
   pt: {
     bounce: {
       title: 'A voltar à Eave…',
-      body: 'Se a Eave não abrir sozinha, toque no botão.',
+      body: 'Se a Eave não abrir sozinha, toca no botão.',
       button: 'Abrir Eave',
     },
     connected: {
       title: 'Banco ligado',
       button: 'Abrir Eave',
-      note: 'Pode fechar esta página.',
+      note: 'Podes fechar esta página.',
     },
     refused: {
       title: 'A ligação não foi concluída',
-      body: 'O banco não confirmou, por isso nada foi guardado. Volte à Eave e tente de novo.',
+      body: 'O banco não confirmou, por isso nada foi guardado. Volta à Eave e tenta de novo.',
       button: 'Abrir Eave',
     },
     used: {
       title: 'Esta página já não é válida',
-      body: 'Esta ligação já foi usada ou expirou. Abra a Eave para ver o estado do banco.',
+      body: 'Este link já foi usado ou expirou. Abre a Eave para veres o estado do banco.',
       button: 'Abrir Eave',
     },
   },
@@ -129,7 +129,7 @@ export function screenCopy(state, lang, bank) {
   if (state !== 'connected') return copy;
   const body =
     lang === 'pt'
-      ? `${bank ? `A ${bank} está ligada` : 'O banco está ligado'} à Eave. Abra a app para ver as contas.`
+      ? `Ligação com ${bank ?? 'o banco'} concluída. Abre a app para veres as contas.`
       : `${bank ?? 'The bank'} is connected to Eave. Open the app to see your accounts.`;
   return { ...copy, body };
 }
@@ -183,7 +183,7 @@ if (typeof document !== 'undefined' && typeof location !== 'undefined') {
       if (!shouldFinishHere({ wentAway, visibilityState: document.visibilityState })) return;
       const { result, bankName } = await completeLink(search, fetch);
       if (wentAway || result === 'unreachable') return; // outcome unknown: stay on the bounce screen, its button works
-      ui.state = result === 'failed' ? 'refused' : result;
+      ui.state = result === 'failed' || result === 'empty' ? 'refused' : result;
       ui.bank = bankName;
       render();
     }, SETTLE_MS);
