@@ -38,7 +38,8 @@ export function pageLanguage(navigatorLanguages) {
 
 /**
  * Completes the link with Eave's server (the person came back in a browser the app can't be reached from).
- * Resolves `{ result }`, plus `bankName` when connected. Never throws; any trouble is `failed`.
+ * Resolves `{ result }`, plus `bankName` when connected. The server's `renewed` and `reconnected` (the same connection
+ * on a new consent) are `connected` here: the page shows the same screen. Never throws; any trouble is `failed`.
  */
 export async function completeLink(search, fetchImpl) {
   const params = new URLSearchParams(search);
@@ -59,7 +60,7 @@ export async function completeLink(search, fetchImpl) {
     // The server's own `failed` (a 502) means it created nothing. Any other trouble leaves the outcome unknown.
     if (answer.result === 'failed') return { result: 'failed' };
     if (!response.ok) return { result: 'unreachable' };
-    if (answer.result === 'connected') {
+    if (['connected', 'renewed', 'reconnected'].includes(answer.result)) {
       return typeof answer.bankName === 'string'
         ? { result: 'connected', bankName: answer.bankName }
         : { result: 'connected' };
